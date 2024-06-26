@@ -45,6 +45,7 @@ class TestUserListCreateApi:
             "name": user.name,
             "email": user.email,
             "surname": user.surname,
+            "teams": [],
         }
         get_all_users_mock.assert_called_once_with()
 
@@ -88,6 +89,8 @@ class TestTeamListCreateApi:
     def test_create(self, api_client, mocker):
         payload = dict(name="Survey Corps")
         team = TeamFactory()
+        user = UserFactory()
+        team.people.set([user])
         create_team_mock = mocker.patch("users.views.create_team", return_value=team)
 
         response = api_client.post(reverse(self.ROUTE), data=payload)
@@ -96,6 +99,7 @@ class TestTeamListCreateApi:
         assert response.json() == {
             "id": team.id,
             "name": team.name,
+            "people": [{"id": user.id, "full_name": user.full_name}],
         }
         create_team_mock.assert_called_with(**payload)
 
@@ -143,3 +147,27 @@ class TestTeamRetrieveUpdateDestroyApi:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         delete_team_mock.assert_called_with(team)
+
+
+class TestMoveUserInTeamsApi:
+    ROUTE = "users:move-user-in-teams"
+
+    def test_post(self, api_client, mocker):
+        user = UserFactory()
+        team = TeamFactory()
+        add_user_to_team_mock = mocker.patch("users.views.add_user_to_team")
+
+        response = api_client.post(reverse(self.ROUTE, kwargs=dict(user_id=user.id, team_id=team.id)))
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        add_user_to_team_mock.assert_called_with(user=user, team=team)
+
+    def test_delete(self, api_client, mocker):
+        user = UserFactory()
+        team = TeamFactory()
+        add_user_to_team_mock = mocker.patch("users.views.remove_user_from_team")
+
+        response = api_client.delete(reverse(self.ROUTE, kwargs=dict(user_id=user.id, team_id=team.id)))
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        add_user_to_team_mock.assert_called_with(user=user, team=team)

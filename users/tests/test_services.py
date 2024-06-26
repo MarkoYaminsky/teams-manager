@@ -4,12 +4,14 @@ from django.db.models import Q
 
 from users.models import Team
 from users.services import (
+    add_user_to_team,
     create_team,
     create_user,
     delete_team,
     delete_user,
     get_all_teams,
     get_all_users,
+    remove_user_from_team,
     update_team,
     update_user,
 )
@@ -27,10 +29,13 @@ class TestCreateUserService:
     email = "john.doe@example.com"
 
     def test_successful(self):
-        user = create_user(name=self.name, surname=self.surname, email=self.email, password=self.password)
+        team = TeamFactory()
+        user = create_user(name=self.name, surname=self.surname, email=self.email, password=self.password, teams=[team])
 
         assert User.objects.count() == 1
         assert User.objects.first() == user
+        assert user.teams.count() == 1
+        assert user.teams.first() == team
 
 
 class TestGetAllUsersService:
@@ -130,3 +135,26 @@ class TestDeleteTeamService:
 
         assert Team.objects.count() == 1
         assert Team.objects.first() == not_deleted_team
+
+
+class TestAddUserToTeamService:
+    def test_successful(self):
+        user = UserFactory()
+        team = TeamFactory()
+
+        add_user_to_team(user=user, team=team)
+
+        assert team.people.count() == 1
+        assert team.people.first() == user
+
+
+class TestRemoveUserFromTeamService:
+    def test_successful(self):
+        user = UserFactory()
+        team = TeamFactory()
+        team.people.add(user)
+
+        remove_user_from_team(user=user, team=team)
+
+        assert team.people.count() == 0
+        assert user not in team.people.all()
