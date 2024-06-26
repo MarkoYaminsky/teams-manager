@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from users.models import User
+from users.models import Team, User
 
 
 class UserListOutputSerializer(serializers.ModelSerializer):
@@ -24,3 +24,22 @@ class UserRetrieveCreateOutputSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("id", "name", "surname", "email", "is_superuser", "is_staff")
+
+
+class TeamListOutputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ("id", "name")
+
+
+class TeamCreateUpdateInputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ("name",)
+
+
+class TeamRetrieveCreateOutputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ("id", "name")
+        # TODO When integrating with users, create an expanded version of team's users
