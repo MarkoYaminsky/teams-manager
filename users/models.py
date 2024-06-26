@@ -1,6 +1,13 @@
-from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
+
+
+class UserManager(BaseUserManager):
+    def create_superuser(self, email: str, password: str, name: str, surname: str) -> "User":
+        from .services import create_user
+
+        return create_user(name=name, surname=surname, email=email, password=password, is_staff=True, is_superuser=True)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -11,6 +18,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ("password", "name", "surname")
+
+    objects = UserManager()
 
     @property
     def full_name(self) -> str:
