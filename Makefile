@@ -6,3 +6,6 @@ migrate:
 
 create-super-user:
 	python manage.py createsuperuser
+
+test:
+	pytest
